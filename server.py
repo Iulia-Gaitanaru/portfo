@@ -1,6 +1,10 @@
 from flask import Flask, render_template, request, redirect
 app = Flask(__name__)
 import csv
+import smtplib
+from email.message import EmailMessage
+from string import Template
+from pathlib import Path
 
 # Username is a parameter for the function hello_world
 @app.route('/')
@@ -20,6 +24,7 @@ def submit_form():
         try:
             data = request.form.to_dict()
             print(data)
+            send_an_email(data)
             write_to_csv(data)
             return redirect('/thankyou.html')
         except:
@@ -44,3 +49,17 @@ def write_to_csv(data):
         csv_writer = csv.writer(database2, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
         csv_writer.writerow([email, subject, message])
 
+def send_an_email(data):
+    email = EmailMessage()
+    email['from'] = data["email"]
+    email['to'] = 'gaitanaru.iulia@gmail.com'
+    email['subject'] = data["subject"]
+    message = "Email Sender: " + email["from"] + "\nSubiect: "+ email["subject"] + "\nContent: " + data["message"]
+    email.set_content(message)
+
+    with smtplib.SMTP(host='smtp.gmail.com', port=587) as smtp:
+        smtp.ehlo()
+        smtp.starttls()
+        smtp.login('gaitanaru.iulia@gmail.com', 'xudzzhuqyzaqxwsl')
+        smtp.send_message(email)
+        print("Sent it!")
